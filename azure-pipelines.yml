@@ -18,11 +18,27 @@ steps:
     addToPath: true
     architecture: 'x64'
 
-- task: Docker@2
-  inputs:
-    containerRegistry: 'acr'  # Specify the name of your Azure service connection
-    repository: '$(acrName).azurecr.io/$(imageName):$(Build.BuildId)'
-    command: 'buildAndPush'
-    Dockerfile: '**/Dockerfile'
-    buildContext: '.'
+- script: |
+    # Log in to Azure using your existing service principal
+    az login --service-principal -u $(servicePrincipalId) -p $(servicePrincipalKey) --tenant $(tenantId)
+    
+    # Set the subscription
+    az account set --subscription $(subscriptionId)
+
+    # Set the ACR login server as an environment variable
+    acrLoginServer=$(az acr show --name $(acrName) --resource-group $(resourceGroupName) --query 'loginServer' --output tsv)
+
+    # Log in to the ACR
+    az acr login --name $(acrName)
+
+    # Build the Docker image
+    docker build -t $acrLoginServer/$(imageName):$(Build.BuildId) .
+
+    # Push the Docker image
+    docker push $acrLoginServer/$(imageName):$(Build.BuildId)
   displayName: 'Build and Push Docker Image'
+  env:
+    AZURE_CORE_PYPYVERSION: 3.7
+  workingDirectory: $(Build.SourcesDirectory)
+
+# Add additional steps here as needed for your specific pipeline

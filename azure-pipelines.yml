@@ -1,0 +1,28 @@
+trigger:
+- main
+
+pr: none  # Skip pull request builds if not needed
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+variables:
+  # Define your ACR name and image name
+  acrName: 'testacr21'
+  imageName: 'testimage'
+
+steps:
+- task: UsePythonVersion@0
+  inputs:
+    versionSpec: '3.x'
+    addToPath: true
+    architecture: 'x64'
+
+- task: Docker@2
+  inputs:
+    containerRegistry: 'Azureplayground'  # Specify the name of your Azure service connection
+    repository: '$(acrName).azurecr.io/$(imageName):$(Build.BuildId)'
+    command: 'buildAndPush'
+    Dockerfile: '**/Dockerfile'
+    buildContext: '.'
+  displayName: 'Build and Push Docker Image'

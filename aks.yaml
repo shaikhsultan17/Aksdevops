@@ -13,10 +13,13 @@ spec:
         app: myapp
     spec:
       containers:
-        - name: frontend
-          image: testacr21.azurecr.io/akstest:latest
-          ports:
-            - containerPort: 80
+      - name: testimage
+        image: estacr21.azurecr.io/testimage:21
+        ports:
+        - containerPort: 80
+      imagePullSecrets:
+      - name: mysecrettest
+ 
 ---
 apiVersion: v1
 kind: Service
@@ -28,5 +31,5 @@ spec:
   ports:
     - name: frontend
       port: 80
-      targetPort: 8080
+      targetPort: 80
   type: LoadBalancer
